@@ -2,7 +2,7 @@ import { Command, program } from 'commander'
 import ydl from 'youtube-dl-exec'
 
 import {siteDefaults} from '../lib/defaults.js'
-import {readFile} from '../lib/files.js'
+import {readFile, validatePath} from '../lib/files.js'
 import { realtime } from '../lib/realtime.js'
 
 const sites = Object.entries(siteDefaults).map(([key, value]) => {
@@ -23,6 +23,9 @@ sites.forEach(([site, alias]) => {
 
 program
   .action((inputPath, outputPath, options) => {
+    validatePath(inputPath)
+    validatePath(outputPath)
+
     const links = readFile(inputPath)
 
     links.forEach((link) => {

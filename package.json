@@ -12,6 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^8.1.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "sharp": "^0.29.0",
     "youtube-dl-exec": "^1.2.4"
   }
 }
