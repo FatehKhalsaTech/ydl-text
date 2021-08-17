@@ -3,7 +3,7 @@ import ydl from 'youtube-dl-exec'
 
 import {siteDefaults} from '../lib/defaults.js'
 import {readFile, validatePath} from '../lib/files.js'
-import { realtime } from '../lib/realtime.js'
+import { realtimeYdl } from '../lib/realtime.js'
 
 const sites = Object.entries(siteDefaults).map(([key, value]) => {
   return [key, value.alias]
@@ -57,7 +57,7 @@ program
           embedThumbnail: attachThumbnail,
         }
       }
-      realtime(link, opts)
+      realtimeYdl(link, opts)
     })
 })
 program.parse(process.argv)
