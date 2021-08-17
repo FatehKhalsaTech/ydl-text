@@ -2,10 +2,7 @@ const siteDefaults = {
   youtube: {
     audio: 140,
     video: 136,
-  },
-  'youtu.be': {
-    audio: 140,
-    video: 136,
+    alias: 'youtu.be'
   },
   soundcloud: {
     audio: 'http_mp3_128',
