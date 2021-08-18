@@ -1,5 +1,5 @@
 import ydl from "youtube-dl-exec";
-import { apRaw } from "./atomic-parsley";
+import { apRaw } from "./atomic-parsley.js";
 
 export const realtimeYdl = (link, flags, opts) => (
   ydl.raw(link, flags, opts).stdout.pipe(process.stdout)

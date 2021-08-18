@@ -12,10 +12,10 @@ const sites = Object.entries(siteDefaults).map(([key, value]) => {
 program
   .arguments('<path>', 'path to text file')
   .arguments('[output]', 'the output location of the files', process.cwd)
-  .option('-a', '--audio', 'true if only download audio')
-  .option('-l', '--format-list', 'show a list of formats')
-  .option('-t', '--attach-thumbnail', 'download and attach thumbnail')
-  .option('-i', '--only-image', 'just get the thumbnail')
+  .option('-a, --audio', 'true if only download audio')
+  .option('-l, --format-list', 'show a list of formats')
+  .option('-t, --attach-thumbnail', 'download and attach thumbnail')
+  .option('-i, --only-image', 'just get the thumbnail')
 
 sites.forEach(([site, alias]) => {
   program.option(`--${site} [string]`, `override default format for ${site} or ${alias}`)
@@ -30,10 +30,11 @@ program
 
     links.forEach((link) => {
 
-      const {a: audioOnly, t: attachThumbnail, i: thumbnailOnly, l: formatsOnly} = options
+      const {audio: audioOnly, attachThumbnail, onlyImage: thumbnailOnly, formatList: formatsOnly} = options
       let opts
       if (!!thumbnailOnly) {
         opts = {
+          output: `${outputPath}/%(title)s.%(ext)s`,
           writeThumbnail: true,
           skipDownload: true
         }

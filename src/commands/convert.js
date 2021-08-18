@@ -2,8 +2,8 @@ import os from 'os'
 import ffmpeg from 'fluent-ffmpeg'
 import sharp from 'sharp'
 import { Command } from 'commander'
-import { getFileName, validatePath } from '../lib/files'
-import { argError, exitWithError } from '../lib/error'
+import { getFileName, validatePath } from '../lib/files.js'
+import { argError, endWithError } from '../lib/error.js'
 
 const program = new Command()
 
@@ -11,21 +11,23 @@ program
   .argument('<path>', 'path to file')
   .argument('<output>', 'output location, otherwise it will use the current directory', process.cwd)
   .argument('[name]', 'optionally change the name')
-  .option('-t', '--type <filetype>'  , 'what type of file is this? img or audio', 'audio' )
-  .option('-f', '--format <output-format>', 'override the default conversion format (m4a for audio and jpg for images)')
+  .option('-t, --type <filetype>'  , 'what type of file is this? img or audio', 'audio' )
+  .option('-f, --format <output-format>', 'override the default conversion format (m4a for audio and jpg for images)')
   .action((path, outputPath, newName, options) => {
     validatePath(path)
-    const {t: fileType} = options
+    const {type: fileType} = options
     
     switch(fileType) {
-      case 'audio':
-        const {f: outputFormat = 'm4a'} = options
+      case 'audio': {
+        const {format: outputFormat = 'm4a'} = options
         const fileName = newName || getFileName(path)
 
+        validatePath(`${outputPath}`)
         ffmpeg()
           .input(path)
+          .audioCodec('aac')
           .on('error', (err) => {
-            exitWithError(`Something went wrong with ffmpeg\n${err}`)
+            endWithError(`Something went wrong with ffmpeg\n${err}`)
           })
           .on('progress', (data) => {
               const { currentFps,  currentKbps, targetSize, timemark, percent} = data
@@ -34,20 +36,21 @@ program
           .on('end', () => {
             console.log('finished conversion')
           })
-          .save( `${outputPath}/${fileName}.${outputFormat}`)
+          .saveToFile(`${outputPath}/${fileName}.${outputFormat}`)
         break
-
-      case 'img':
-        const {t: outputFormat = 'jpg'} = options
+      }
+      case 'img': {
+        const {format: outputFormat = 'jpg'} = options
         const fileName = newName || getFileName(path)
 
         sharp(path)
           .toFile(`${outputPath}/${fileName}.${outputFormat}`)
         break
-
-      default:
+      }
+      default: {
         argError('File type provided for conversion was invalid')
         break
+      }
     }
   })
 program.parse(process.argv)

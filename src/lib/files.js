@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { argError } from './error'
+import { argError } from './error.js'
 const readFile = (path ) =>  fs.readFileSync(path).toString().split('\n').filter((str) => str !== '')
 
 const validatePath = (path) => {

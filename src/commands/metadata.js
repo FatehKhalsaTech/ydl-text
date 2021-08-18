@@ -1,5 +1,5 @@
 import { Command, program } from "commander";
-import { realtimeAP } from "../lib/realtime";
+import { realtimeAP } from "../lib/realtime.js";
 
 program
   .argument('<path>', 'path to file')
