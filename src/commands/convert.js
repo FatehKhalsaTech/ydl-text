@@ -2,8 +2,8 @@ import os from 'os'
 import ffmpeg from 'fluent-ffmpeg'
 import sharp from 'sharp'
 import { Command } from 'commander'
-import { getFileName, validatePath } from '../lib/files.js'
-import { argError, endWithError } from '../lib/error.js'
+import { getFileName, validatePath } from '../utils/files.js'
+import { argError, endWithError } from '../utils/error.js'
 
 const program = new Command()
 

@@ -1,13 +1,14 @@
-import { Command, program } from 'commander'
-import ydl from 'youtube-dl-exec'
+import { Command } from 'commander'
 
-import {siteDefaults} from '../lib/defaults.js'
-import {readFile, validatePath} from '../lib/files.js'
-import { realtimeYdl } from '../lib/realtime.js'
+import {siteDefaults} from '../utils/defaults.js'
+import {readFile, validatePath} from '../utils/files.js'
+import { realtimeYdl } from '../utils/realtime.js'
 
 const sites = Object.entries(siteDefaults).map(([key, value]) => {
   return [key, value.alias]
 })
+
+const program = new Command()
 
 program
   .arguments('<path>', 'path to text file')
