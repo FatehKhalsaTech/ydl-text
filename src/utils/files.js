@@ -18,4 +18,8 @@ const getFileName = (path) => {
   return withoutExtension
 }
 
-export {readFile, validatePath, getFileName , removeOneLine}
+const getFileExtension = (path) => {
+  const [, extension] = path.split('.')
+  return extension
+}
+export {readFile, validatePath, getFileName, getFileExtension , removeOneLine}

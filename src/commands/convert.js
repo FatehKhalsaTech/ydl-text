@@ -25,7 +25,6 @@ program
         validatePath(`${outputPath}`)
         ffmpeg()
           .input(path)
-          .audioCodec('aac')
           .on('error', (err) => {
             endWithError(`Something went wrong with ffmpeg\n${err}`)
           })
