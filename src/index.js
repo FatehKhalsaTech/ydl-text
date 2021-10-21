@@ -3,7 +3,7 @@ import { Command } from "commander";
 const program = new Command()
 
 program
-  .version('1.0.0')
+  .version('1.6.0')
   .description('mass install music')
   .command('download', 'install shabads with a text file', { executableFile: './commands/download.js'}).alias('d')
   .command('metadata', 'assign metadata to a file', {executableFile: './commands/metadata.js'}).alias('m')

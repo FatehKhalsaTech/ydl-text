@@ -32,10 +32,12 @@ program
     links.forEach((link) => {
 
       const {audio: audioOnly, attachThumbnail, onlyImage: thumbnailOnly, formatList: formatsOnly} = options
+
+      const outputTitle = `${outputPath}/%(title)s.%(ext)s` 
       let opts
       if (!!thumbnailOnly) {
         opts = {
-          output: `${outputPath}/%(title)s.%(ext)s`,
+          output: outputTitle,
           writeThumbnail: true,
           skipDownload: true
         }
@@ -47,17 +49,32 @@ program
       }
       else {
         const sourceSite = sites.find(([site, alias]) => link.includes(site) || link.includes(alias)) 
-        const [siteName] = sourceSite
+        if(!!sourceSite) {
+          const [siteName] = sourceSite
 
-        let format = siteDefaults[siteName].audio
-        if(options[siteName]) format = options[siteName]
-        else if (!audioOnly && !!siteDefaults[siteName].video) format = siteDefaults[siteName].video
-
-        opts = {
-          output: `${outputPath}/%(title)s.%(ext)s`,
-          format,
-          embedThumbnail: attachThumbnail,
+         let format = siteDefaults[siteName].audio
+          if(options[siteName]) format = options[siteName]
+          else if (!audioOnly && !!siteDefaults[siteName].video) format = siteDefaults[siteName].video
+            opts = {
+              output: outputTitle,
+              format,
+              embedThumbnail: attachThumbnail,
+            }
         }
+        else {
+          
+          opts = {
+            output: outputTitle,
+            embedThumbnail:attachThumbnail,
+            preferFfmpeg: true,
+           ...(!!audioOnly && {
+             extractAudio: true,
+             audioFormat: 'm4a',
+           }),
+          }
+
+        }
+
       }
       realtimeYdl(link, opts)
     })
