@@ -67,7 +67,7 @@ program
             output: outputTitle,
             embedThumbnail:attachThumbnail,
             extractAudio: true,
-            audioFormat: 'm4a',
+            audioFormat: !!audioOnly? 'm4a' : 'mp4',
             preferFfmpeg: true,
           }
 
