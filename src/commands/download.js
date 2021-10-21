@@ -66,9 +66,11 @@ program
           opts = {
             output: outputTitle,
             embedThumbnail:attachThumbnail,
-            extractAudio: true,
-            audioFormat: !!audioOnly? 'm4a' : 'mp4',
             preferFfmpeg: true,
+           ...(!!audioOnly && {
+             extractAudio: true,
+             audioFormat: 'm4a',
+           }),
           }
 
         }
