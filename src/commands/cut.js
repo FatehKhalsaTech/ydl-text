@@ -10,11 +10,12 @@ program
   .argument('<path>', 'path to file')
   .argument('<start>', 'time to start cutting')
   .argument('[end]', 'time to end cutting. Defaults to the end of the file')
-  .option('-o, --output <path>', 'the output path')
+  .option('-p, --output-path <path>', 'the output path', process.cwd())
   .option('-n, --name <name>', 'new name for the output file')
   .option('-f, --format <format>', 'set the format, default is m4a', 'm4a')
   .action((filePath, startTime, endTime, options) => {
     let {output: outputPath, name: newName, format: outputFormat} = options
+    console.log(options)
     validatePath(filePath)
     !!outputPath && validatePath(outputPath)
 
@@ -36,6 +37,7 @@ program
       ffmpeg()
         .input(filePath)
         // .audioCodec('aac')
+        .outputOption('-c:v copy')
         .setStartTime(startTime)
         .duration(duration)
         .saveToFile(output)
@@ -57,6 +59,7 @@ program
         .input(filePath)
         // .audioCodec('aac')
         .setStartTime(startTime)
+        .outputOption('-c:v copy')
         .saveToFile(output)
         .on('error', (err) => {
           endWithError(`Something went wrong with ffmpeg\n${err}`)

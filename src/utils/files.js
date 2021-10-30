@@ -5,7 +5,7 @@ const readFile = (path ) =>  fs.readFileSync(path).toString().split('\n').filter
 const validatePath = (path) => {
    const exists = fs.existsSync(path)
    
-   if(!exists) argError('File path provided was invalid. Please enter a valid error')
+   if(!exists) argError(`File  path  ${path} provided was invalid. Please enter a valid error`)
 }
 const removeOneLine = (path ) => {
   const withoutFirstLine = fs.readFileSync(path).toString().split('\n').slice(1).join('\n')

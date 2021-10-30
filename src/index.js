@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import {cleanFile} from './utils/file-edit.js'
 const program = new Command()
 
 program
-  .version('1.6.0')
+  .version('1.7.0')
   .description('mass install music')
   .command('download', 'install shabads with a text file', { executableFile: './commands/download.js'}).alias('d')
   .command('metadata', 'assign metadata to a file', {executableFile: './commands/metadata.js'}).alias('m')
   .command('cut', 'cut a file with timestamps', {executableFile: './commands/cut.js'}).alias('c')
   .command('convert', 'either convert audio to m4a or img to jgp', {executableFile: './commands/convert.js'}).alias('f')
+  .hook('preAction', () => cleanFile('../output.txt'))
 
 program.parse(process.argv)
