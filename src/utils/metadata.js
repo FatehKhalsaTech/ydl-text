@@ -12,4 +12,5 @@ export const metaDataOptions = [
   ['-i, --artwork <artwork>', 'set the artwork of the file'],
   ['-s, --albumArtist <artist>', 'set the artist of the file'],
   ['-d, --description <description>', 'set the description of the file'],
+  ['-o, --overWrite', 'overWrite temp file'],
 ]

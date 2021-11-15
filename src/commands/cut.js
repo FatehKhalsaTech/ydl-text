@@ -12,17 +12,15 @@ program
   .argument('[end]', 'time to end cutting. Defaults to the end of the file')
   .option('-p, --output-path <path>', 'the output path', process.cwd())
   .option('-n, --name <name>', 'new name for the output file')
-  .option('-f, --format <format>', 'set the format, default is m4a', 'm4a')
   .action((filePath, startTime, endTime, options) => {
     let {output: outputPath, name: newName, format: outputFormat} = options
-    console.log(options)
     validatePath(filePath)
     !!outputPath && validatePath(outputPath)
 
     const startSeconds = parseTimeToSeconds(startTime)
 
     const oldName = getFileName(filePath)
-    const extension = getFileExtension(filePath)
+    const {extWithoutDot: extension} = getFileExtension(filePath)
     let output
     // wow first time actually applying demorgans law since ap csa
     if (!!(outputPath || newName)) output = `${outputPath}/${newName}.${extension}`
@@ -36,13 +34,12 @@ program
       
       ffmpeg()
         .input(filePath)
-        // .audioCodec('aac')
         .outputOption('-c:v copy')
         .setStartTime(startTime)
         .duration(duration)
         .saveToFile(output)
-        .on('error', (err) => {
-          endWithError(`Something went wrong with ffmpeg\n${err}`)
+        .on('error', (err, stdout, stderr) => {
+          console.error(`Something went wrong with ffmpeg\n${stdout} \n${stderr}`)
         })
         .on('progress', (data) => {
             const { currentKbps, targetSize, timemark, percent} = data

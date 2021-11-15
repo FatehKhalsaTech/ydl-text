@@ -4,7 +4,7 @@ import {cleanFile} from './utils/file-edit.js'
 const program = new Command()
 
 program
-  .version('1.7.0')
+  .version('1.7.2')
   .description('mass install music')
   .command('download', 'install shabads with a text file', { executableFile: './commands/download.js'}).alias('d')
   .command('metadata', 'assign metadata to a file', {executableFile: './commands/metadata.js'}).alias('m')

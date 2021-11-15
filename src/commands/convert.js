@@ -1,8 +1,10 @@
 import os from 'os'
+import trash from 'trash'
 import ffmpeg from 'fluent-ffmpeg'
 import sharp from 'sharp'
 import { Command } from 'commander'
 import { getFileName, validatePath } from '../utils/files.js'
+import {round} from '../utils/math.js'
 import { argError, endWithError } from '../utils/error.js'
 
 const program = new Command()
@@ -21,20 +23,23 @@ program
         const {format: outputFormat = 'm4a'} = options
         const fileName = newName || getFileName(path)
         validatePath(outputPath)
+
         ffmpeg(path) 
         // ffmpeg treats attached images as video, so we copy the image one to one with no change
         .outputOption('-c:v copy')
         .on('error', (err, stdout, stderr) => {
-            endWithError(`Something went wrong with ffmpeg\n${err} \n ${stdout} \n ${stderr}`)
+            console.error(`Something went wrong with ffmpeg\n${err} \n ${stdout} \n ${stderr}`)
           })
           .on('progress', (data) => {
-              const { currentFps,  currentKbps, targetSize, timemark, percent} = data
-              console.log(`${percent}% done. Currently at ${timemark}, working at ${currentKbps} on the way to ${targetSize} `)
+              const { currentKbps, targetSize, timemark, percent} = data
+              console.log(`${round(percent)}% done. Currently at ${timemark}, working at ${currentKbps} on the way to ${targetSize} `)
           })
-          .on('end', () => {
-            console.log('finished conversion')
+          .on('end', async () => {
+            console.log(`finished conversion for ${fileName}`)
+            await trash(path)
           })
           .saveToFile(`${outputPath}/${fileName}.${outputFormat}`)
+
         break
       }
       case 'img': {
