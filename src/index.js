@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import {cleanFile} from './utils/file-edit.js'
 const program = new Command()
 
 program
