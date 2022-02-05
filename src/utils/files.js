@@ -20,7 +20,7 @@ const getFileName = (path) => {
 
 const getFileExtension = (path) => {
   const ext = nodePath.extname(path)
-  const extWithoutDot = ext.substring(1, ext.length())
+  const extWithoutDot = ext.substring(1, ext.length)
   return {ext, extWithoutDot}
 }
 export {readFile, validatePath, getFileName, getFileExtension , removeOneLine}
