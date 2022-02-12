@@ -16,10 +16,10 @@ metaDataOptions.forEach( ( [ flags, description ] ) => {
 program.action( ( filePath, opts ) => {
 	validatePath( filePath )
 
-	const { artist, album, title, track, label, date, attachment: attachments } = opts
+	const { artist, album, title, track, label, date, attachment } = opts
 
 	const data = filterUndefined( { artist, album, title, track, label, date } )
-	const options = filterUndefined( { attachments } )
+	const options = { attachments: [ attachment ] } 
 
 	ffmetadata.write( filePath, data, options, ( err ) => {
 		if ( err ) ydlError( err )
