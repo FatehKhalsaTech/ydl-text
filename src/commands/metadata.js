@@ -1,22 +1,30 @@
-import { Command } from "commander";
-import { metaDataOptions } from "../utils/metadata.js";
-import { realtimeAP } from "../utils/realtime.js";
-import { validatePath } from '../utils/files.js'
+import ffmetadata from 'ffmetadata'
+import { Command } from 'commander'
+import { metaDataOptions } from '../utils/metadata.js'
+import { ydlError } from '../utils/error'
+import { validatePath } from '../utils/defaults.js'
 
+const filterUndefined = ( obj ) => Object.fromEntries( Object.entries( obj ).filter( ( [ _, value ] ) => typeof value === 'string' ) )
 const program = new Command()
 
-program
-  .argument('<path>', 'path to file')
+program.argument( '<path', 'file path' )
 
-metaDataOptions.forEach(([flags, description]) => {
-  program.option(flags, description)
-})
+metaDataOptions.forEach( ( [ flags, description ] ) => {
+	program.option( flags, description )
+} )
 
-program
-  .action((filePath, options) => {
-    validatePath(filePath) 
+program.action( ( filePath, opts ) => {
+	validatePath( filePath )
 
-    realtimeAP(filePath, options)
-  })
+	const { artist, album, title, track, label, date, attachment: attachments } = opts
 
-program.parse(process.argv)
+	const data = filterUndefined( { artist, album, title, track, label, date } )
+	const options = filterUndefined( { attachments } )
+
+	ffmetadata.write( filePath, data, options, ( err ) => {
+		if ( err ) ydlError( err )
+		else console.log( 'Finished Metadata' )
+	} )
+} )
+
+program.parse( process.argv )

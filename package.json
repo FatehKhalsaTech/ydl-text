@@ -14,20 +14,24 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cli-progress": "^3.10.0",
     "commander": "^8.1.0",
     "dargs": "^8.1.0",
     "execa": "^5.1.1",
+    "ffmetadata": "^1.7.0",
     "fluent-ffmpeg": "^2.1.2",
     "fs-move": "^3.0.0",
     "sharp": "^0.29.0",
     "trash": "^8.0.0",
-    "youtube-dl-exec": "^1.2.4"
+    "youtube-dl-exec": "^1.2.4",
+    "youtube-dl-wrap": "^2.1.1"
   },
   "bin": {
     "ydl-text": "lib/index.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.8",
-    "@babel/core": "^7.15.0"
+    "@babel/core": "^7.15.0",
+    "eslint": "^8.8.0"
   }
 }
