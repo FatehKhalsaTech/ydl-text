@@ -6,7 +6,6 @@ import { getFileName, validatePath } from '../utils/files.js'
 import { round } from '../utils/math.js'
 import { ydlError } from '../utils/error.js'
 
-argError
 const program = new Command()
 program
 	.argument( '<filepath>', 'path to file' )
@@ -60,7 +59,7 @@ program
 			break
 		}
 		default: {
-			argError( 'File type provided for conversion was invalid' )
+			ydlError( 'File type provided for conversion was invalid' )
 			break
 		}
 		}

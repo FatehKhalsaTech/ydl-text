@@ -1,1 +1,1 @@
-export const ydlError = ( program, text ) => program.error( text )
+export const ydlError = ( text ) => console.error( text )

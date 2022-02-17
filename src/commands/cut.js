@@ -72,7 +72,7 @@ program
 						console.log( 'Overwritten file' )
 					} )
 				}
-			} ).catch( console.log )
-		} else endWithError( 'Please provide some sort of start/end/list of times' )
+			} ).catch( ydlError )
+		} else ydlError( 'Please provide some sort of start/end/list of times' )
 	} )
 program.parse( process.argv )

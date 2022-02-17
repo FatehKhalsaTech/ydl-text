@@ -1,10 +1,11 @@
 import ffmetadata from 'ffmetadata'
 import { Command } from 'commander'
 import { metaDataOptions } from '../utils/metadata.js'
-import { ydlError } from '../utils/error'
-import { validatePath } from '../utils/defaults.js'
+import { ydlError } from '../utils/error.js'
+import { validatePath } from '../utils/files.js'
 
 const filterUndefined = ( obj ) => Object.fromEntries( Object.entries( obj ).filter( ( [ _, value ] ) => typeof value === 'string' ) )
+
 const program = new Command()
 
 program.argument( '<path', 'file path' )
@@ -22,7 +23,7 @@ program.action( ( filePath, opts ) => {
 	const options = { attachments: [ attachment ] } 
 
 	ffmetadata.write( filePath, data, options, ( err ) => {
-		if ( err ) ydlError( err )
+		if ( err ) console.error( err )
 		else console.log( 'Finished Metadata' )
 	} )
 } )

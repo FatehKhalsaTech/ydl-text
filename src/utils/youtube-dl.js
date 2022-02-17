@@ -2,10 +2,11 @@ import dargs from 'dargs'
 import YoutubeDL from 'youtube-dl-wrap'
 import { ydlError } from './error.js'
 
-const youtubeDLPromise = ( link, flags, progressCallback, endCallback ) => (
+const youtubeDLPromise = ( link, flags, progressCallback, eventCallback, endCallback ) => (
 	new Promise( ( resolve, reject ) => {
 		new YoutubeDL().exec( [ link, ...dargs( flags, { useEquals: false } ).filter( Boolean ) ] )
 			.on( 'progress', progressCallback )
+			.on( 'youtubeDlEvent', eventCallback )
 			.on( 'error', ( err ) => {
 				return reject( ydlError ( err ) )
 			} )
