@@ -1,19 +1,16 @@
 import { Command } from 'commander'
+import cliProgress from 'cli-progress'
 
 import { siteDefaults } from '../utils/defaults.js'
 import { readFile, validatePath, getFileName } from '../utils/files.js'
-import cliProgress from 'cli-progress'
-import { youtubeDLPromise } from '../utils/youtube-dl.js'
-import { ydlError } from '../utils/error.js'
+import { youtubeDLPromise } from '../utils/cli-wrappers.js'
+import { executeSequentially } from '../utils/async.js'	
 
 const sites = Object.entries( siteDefaults ).map( ( [ key, value ] ) => {
 	return [ key, value.alias ]
 } )
-
-const program = new Command()
-
 const generateDowload = async ( options, outputPath,link, multiProgressBar ) => {
-	const { audio: audioOnly, attachThumbnail, onlyImage: thumbnailOnly, formatList: formatsOnly } = options
+	const { audio: audioOnly, attachThumbnail, onlyImage: thumbnailOnly, formatList: formatsOnly, format } = options
 
 	const outputTitle = `${outputPath}/%(title)s.%(ext)s` 
 	let opts
@@ -34,12 +31,12 @@ const generateDowload = async ( options, outputPath,link, multiProgressBar ) => 
 		if( sourceSite ) {
 			const [ siteName ] = sourceSite
 
-			let format = siteDefaults[ siteName ].audio
-			if( options[ siteName ] ) format = options[ siteName ]
-			else if ( !audioOnly && !!siteDefaults[ siteName ].video ) format = siteDefaults[ siteName ].video
+			let downloadFormat = siteDefaults[ siteName ].audio
+			if( format ) downloadFormat = options[ siteName ]
+			else if ( !audioOnly && !!siteDefaults[ siteName ].video ) downloadFormat = siteDefaults[ siteName ].video
 			opts = {
 				output: outputTitle,
-				format,
+				format: downloadFormat,
 				embedThumbnail: attachThumbnail,
 			}
 		}
@@ -80,24 +77,17 @@ const generateDowload = async ( options, outputPath,link, multiProgressBar ) => 
 	await youtubeDLPromise( link, opts, progressCallback, eventCallback, endCallback )
 }
 
-// Explanation: When we read the Youtube-DL events, it doesn't differentiate which video, so then multiple bars at the same time have the same name
-const executeSequentially = async ( iterable ) => {
-	for ( const download of iterable ) {
-		await download().catch( ydlError )
-	}
-}
 
+const program = new Command()
 program
 	.arguments( '<path>', 'path to text file' )
 	.arguments( '[output]', 'the output location of the files', process.cwd() )
 	.option( '-a, --audio', 'true if only download audio' )
 	.option( '-l, --format-list', 'show a list of formats' )
+	.option( '-f, --override-format', 'override default format' )
 	.option( '-t, --attach-thumbnail', 'download and attach thumbnail' )
 	.option( '-i, --only-image', 'just get the thumbnail' )
 
-sites.forEach( ( [ site, alias ] ) => {
-	program.option( `--${site} [string]`, `override default format for ${site} or ${alias}` )
-} )
 
 program
 	.action( async ( inputPath, outputPath, options ) => {
@@ -115,7 +105,7 @@ program
 		const promiseArray = links.map( link => async() => generateDowload( options, outputPath, link, multiBar ) )
 
 
-		executeSequentially( promiseArray ).then( () => console.log( 'lol' ) )
+		executeSequentially( promiseArray ).then( () => multiBar.stop()  )
 	} )
 
 program.parseAsync( process.argv )

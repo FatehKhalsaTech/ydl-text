@@ -1,6 +1,6 @@
 {
   "name": "ydl-text",
-  "version": "1.7.2",
+  "version": "1.7.7",
   "description": "",
   "main": "./lib/index.js",
   "type": "module",

@@ -12,11 +12,11 @@ const validatePath = ( path ) => {
 
 const getFileExtension = ( path ) => {
 	const ext = nodePath.extname( path )
-	return ext.substring( 1, ext.length )
+	return [ ext, ext.substring( 1, ext.length ) ]
 }
 
 const getFileName = ( path ) => {
-	const { ext } = getFileExtension( path )
+	const [ ext, _ ] = getFileExtension( path )
 	return nodePath.basename( path, ext )
 }
 

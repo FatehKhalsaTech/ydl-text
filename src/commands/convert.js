@@ -5,6 +5,8 @@ import { Command } from 'commander'
 import { getFileName, validatePath } from '../utils/files.js'
 import { round } from '../utils/math.js'
 import { ydlError } from '../utils/error.js'
+import { ffmpegPromise } from '../utils/cli-wrappers.js'
+import cliProgress from 'cli-progress'
 
 const program = new Command()
 program
@@ -26,27 +28,14 @@ program
 			const fileName = newName || getFileName( path )
 			validatePath( outputPath )
 
-			ffmpeg( path )
+			const progressBar = new cliProgress.SingleBar( { hideCursor: true }, cliProgress.Presets.shades_classic )
+
+
+			const command = ffmpeg( path )
 			// ffmpeg treats attached images as video, so we copy the image one to one with no change
 				.outputOption( '-c:v copy' )
-				.on( 'error', ( err, stdout, stderr ) => {
-					console.error(
-						`Something went wrong with ffmpeg\n${err} \n ${stdout} \n ${stderr}`,
-					)
-				} )
-				.on( 'progress', ( data ) => {
-					const { currentKbps, targetSize, timemark, percent } = data
-					console.log(
-						`${
-							round( percent )
-						}% done. Currently at ${timemark}, working at ${currentKbps} on the way to ${targetSize} `,
-					)
-				} )
-				.on( 'end', async () => {
-					console.log( `finished conversion for ${fileName}` )
-					await trash( path )
-				} )
-				.saveToFile( `${outputPath}/${fileName}.${outputFormat}` )
+
+			ffmpegPromise( command, `${outputPath}/${fileName}.${outputFormat}`, ( data ) =>{ progressBar.update( round( data.percent, 0 ) ) }, () => {} ).then( async () => await trash( path ) )
 
 			break
 		}

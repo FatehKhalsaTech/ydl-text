@@ -1,11 +1,14 @@
 import ffmpeg from 'fluent-ffmpeg'
 import fs from 'fs'
 import { Command } from 'commander'
-import { getFileExtension, getFileName, validatePath } from '../utils/files.js'
+import { getFileExtension, getFileName, validatePath, readFile } from '../utils/files.js'
 import { parseTimeToSeconds } from '../utils/parse-time.js'
-import { ffmpegPromise } from '../utils/ffmpeg-promise.js'
-import { rand } from '../utils/math.js'
+import { ffmpegPromise } from '../utils/cli-wrappers.js'
+import { rand, round } from '../utils/math.js'
+import { splitWithTail } from '../utils/strings.js'
 import { ydlError } from '../utils/error.js'
+import { awaitAll } from '../utils/async.js'
+import cliProgress from 'cli-progress'
 
 const program = new Command()
 
@@ -20,59 +23,109 @@ program
 	.option( '-k, --keep-input', 'preserve the input file' )
 	.option( '-s, --start-time [start]', 'starting time for cutting' )
 	.option( '-e, --end-time [end]', 'ending time for cutting' )
-	.option(
-		'-l,--list-times',
-		'a list of times to cut. Starts at 0:00 and ends at end of file',
-	)
-	.action( async ( filePath, options ) => {
-		let { outputPath, newName, keepInput, startTime, endTime, listTimes } =
-      options
-		console.log( filePath, options )
+	.option( '-t, --from-text <text-path>', 'use a text file to provide multiple times' )
+	// .option(
+	// 	'-l,--list-times',
+	// 	'a list of times to cut.',
+	// )
+	.action( async ( filePath, options ) => { 
+		const { newName, keepInput, startTime, endTime, fromText,  outputPath } = options
 
-		validatePath( filePath )
 		validatePath( outputPath )
 
-		const { extWithoutDot } = getFileExtension( filePath )
+		if ( fromText ) {
+			validatePath( fromText )
+			const textData = readFile( fromText )
 
-		let tempFileName
+			const timeStamps = textData.map( ( line ) => {
+				const [ startTime, endTime, outputName ] = splitWithTail( line, ' ', 3 ) 
 
-		if ( newName ) {
-			tempFileName = `${outputPath}/${newName}.${extWithoutDot}`
-		} else {
-			const random = rand()
-			const oldName = getFileName( filePath )
-			tempFileName = `${outputPath}/${oldName}-${random}.${extWithoutDot}`
-		}
+				const startSeconds = parseTimeToSeconds( startTime )
+				// we need some sort of marker for the end of the file, so we just use the end string in that case
+				const endSeconds = endTime === 'end' ? 'end': parseTimeToSeconds( endTime ) 
+				
+				return [ startSeconds, endSeconds, outputName ]
+			} )
 
-		// if we have a list of times, rather than just a start and end time
-		if ( listTimes ) {}
-		else if ( !!endTime || !!startTime ) {
-			const startSeconds = startTime ? parseTimeToSeconds( startTime ) : 0
-			const endSeconds = endTime ? parseTimeToSeconds( endTime ) : null
+			const progressBar = new cliProgress.MultiBar( { hideCursor: true, format: '[{bar}] {percentage}% | ETA: {eta}s | {name}' }, cliProgress.Presets.shades_classic )
 
-			let ffmpegCommand = ffmpeg().input( filePath ).outputOption( '-c:v copy' )
+			const cutProcess = async( inputPath, outputPath, data, multiBar ) => {
+				const inputFileName = getFileName( inputPath )
+				const [ , inputExt ] = getFileExtension( inputPath )
+				
+				const [ startTime, endTime, newOutputName ] = data
 
-			if ( endSeconds ) {
-				const length = endSeconds - startSeconds
-				if ( length < 0 ) {
-					endWithError(
-						'Please make sure the start time is before the end time',
-					)
+				let ffmpegCommand = ffmpeg( filePath ).outputOption( '-c:v copy' )
+
+				const taskProgressBar = multiBar.create( 100, 0 )
+
+				const fileName = newOutputName || `${startTime}-to-${endTime}-${inputFileName}`
+				// if we are dealing with an end marker
+				if ( endTime === 'end' ) {
+					// don't set the duration, so it goes all the way to the end
+					ffmpegCommand = ffmpegCommand.setStartTime( startTime )
 				}
-				ffmpegCommand = ffmpegCommand.setStartTime( startSeconds ).duration(
-					length,
-				)
-			} else {
-				ffmpegCommand = ffmpegCommand.setStartTime( startSeconds )
+				else {
+					ffmpegCommand = ffmpegCommand.setStartTime( startTime ).duration( endTime - startTime )
+
+				}
+
+				return ffmpegPromise( ffmpegCommand, `${outputPath}/${fileName}.${inputExt}`, ( data ) => { taskProgressBar.update( round( data.percent, 2 ), { name: fileName } ) }, () => { taskProgressBar.update( 100 )} )
+
 			}
 
-			ffmpegPromise( ffmpegCommand, tempFileName ).then( () => {
-				if ( !keepInput ) {
-					fs.renameSync( tempFileName, path, () => {
-						console.log( 'Overwritten file' )
-					} )
+			awaitAll( timeStamps.map( ( data ) => cutProcess( filePath, outputPath, data, progressBar ) ), () => progressBar.stop(), ydlError )
+
+		}
+		// else if ( listTimes ) {}
+		else if ( !!startTime || !!endTime ) { 
+
+			const [ , ext ] = getFileExtension( filePath )
+			let tempFileName
+
+			if ( newName ) {
+				tempFileName = `${outputPath}/${newName}.${ext}`
+			} else {
+				const random = rand()
+				const oldName = getFileName( filePath )
+				tempFileName = `${outputPath}/${oldName}-${random}.${ext}`
+			}
+
+			// if we have a list of times, rather than just a start and end time
+			if ( listTimes ) {}
+			else if ( !!endTime || !!startTime ) {
+				const startSeconds = startTime ? parseTimeToSeconds( startTime ) : 0
+				const endSeconds = endTime ? parseTimeToSeconds( endTime ) : null
+
+				let ffmpegCommand = ffmpeg().input( filePath ).outputOption( '-c:v copy' )
+
+				if ( endSeconds ) {
+					const length = endSeconds - startSeconds
+					if ( length < 0 ) {
+						endWithError(
+							'Please make sure the start time is before the end time',
+						)
+					}
+					ffmpegCommand = ffmpegCommand.setStartTime( startSeconds ).duration(
+						length,
+					)
+				} else {
+					ffmpegCommand = ffmpegCommand.setStartTime( startSeconds )
 				}
-			} ).catch( ydlError )
-		} else ydlError( 'Please provide some sort of start/end/list of times' )
+
+				ffmpegPromise( ffmpegCommand, tempFileName, () => {}, () => {} ).then( () => {
+					if ( !keepInput ) {
+						fs.renameSync( tempFileName, path, () => {
+							console.log( 'Overwritten file' )
+						} )
+					}
+				} ).catch( ydlError )
+			} else ydlError( 'Please provide some sort of start/end/list of times' )
+		}
+		else {
+			ydlError( 'Please use one way of providing times' )
+		}
 	} )
+
+
 program.parse( process.argv )
