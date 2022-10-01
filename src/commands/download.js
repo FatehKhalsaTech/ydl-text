@@ -4,7 +4,7 @@ import cliProgress from 'cli-progress'
 import { siteDefaults } from '../utils/defaults.js'
 import { readFile, validatePath, getFileName } from '../utils/files.js'
 import { youtubeDLPromise } from '../utils/cli-wrappers.js'
-import { executeSequentially } from '../utils/async.js'	
+import { executeSequentially, retry } from '../utils/async.js'	
 
 const sites = Object.entries( siteDefaults ).map( ( [ key, value ] ) => {
 	return [ key, value.alias ]
@@ -37,7 +37,8 @@ const generateDowload = async ( options, outputPath,link, multiProgressBar ) => 
 			opts = {
 				output: outputTitle,
 				format: downloadFormat,
-				embedThumbnail: attachThumbnail,
+				// writeThumbnail: squareThumbnail && !attachThumbnail,
+				embedThumbnail:attachThumbnail,
 			}
 		}
 		else {
@@ -66,24 +67,23 @@ const generateDowload = async ( options, outputPath,link, multiProgressBar ) => 
 
 	const eventCallback = ( eventType, eventData ) => {
 		if( eventType === 'download' && eventData.includes( 'Destination: ' ) )
-			linkProgress.update( { link: getFileName( eventData.slice( 12 ) ) } )
+			linkProgress.update( { link:  eventData.slice( 12 )  } )
 	}
 	const endCallback = () => { 
 		multiProgressBar.remove( linkProgress )
 	}
 
-
-
-	await youtubeDLPromise( link, opts, progressCallback, eventCallback, endCallback )
+	await retry( youtubeDLPromise, 3, link, opts, progressCallback, eventCallback, endCallback )
 }
 
 
 const program = new Command()
 program
-	.arguments( '<path>', 'path to text file' )
-	.arguments( '[output]', 'the output location of the files', process.cwd() )
+	.argument( '<path>', 'path to text file' )
+	.argument( '[output]', 'the output location of the files', process.cwd() )
 	.option( '-a, --audio', 'true if only download audio' )
 	.option( '-l, --format-list', 'show a list of formats' )
+	// .option( '-s, --square-thumbnail', 'embed square thumbnail' )
 	.option( '-f, --override-format', 'override default format' )
 	.option( '-t, --attach-thumbnail', 'download and attach thumbnail' )
 	.option( '-i, --only-image', 'just get the thumbnail' )

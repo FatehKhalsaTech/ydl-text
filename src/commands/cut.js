@@ -77,7 +77,6 @@ program
 			awaitAll( timeStamps.map( ( data ) => cutProcess( filePath, outputPath, data, progressBar ) ), () => progressBar.stop(), ydlError )
 
 		}
-		// else if ( listTimes ) {}
 		else if ( !!startTime || !!endTime ) { 
 
 			const [ , ext ] = getFileExtension( filePath )
@@ -92,8 +91,7 @@ program
 			}
 
 			// if we have a list of times, rather than just a start and end time
-			if ( listTimes ) {}
-			else if ( !!endTime || !!startTime ) {
+			if ( !!endTime || !!startTime ) {
 				const startSeconds = startTime ? parseTimeToSeconds( startTime ) : 0
 				const endSeconds = endTime ? parseTimeToSeconds( endTime ) : null
 
