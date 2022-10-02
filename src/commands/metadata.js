@@ -40,7 +40,7 @@ program.action( ( filePath, opts ) => {
 
 
 		if ( !attachment ) 
-		 ffmetadata.write( filePath, data, ( err ) => {
+			ffmetadata.write( filePath, data, ( err ) => {
 				if ( err ) console.error( err )
 				else console.log( 'Finished Metadata' )
 			} )

@@ -12,15 +12,15 @@ export const awaitAll = ( promiseFactory, endCallback, errorCallback ) => {
 }
 
 
-export const retry = async ( fn, numRetries, ...args ) => { 
+export const retry = async ( fn, numRetries, videoInfo, ...args ) => { 
 	for ( let i = 0; i < numRetries; i++ ) {
 		try {
 			return await fn( ...args )
 		}
 		catch( err ){
-			console.log( ` ${err}\n Retrying dowload` )
+			console.log( ` ${err}\n Retrying dowload for video ${videoInfo}` )
 		}
 	}	
 
-	console.error( 'Failed to resolve failing process. Please retry command. If the error persists, please file a bug on github' ) 
+	console.error( `Failed to resolve failing process for video ${videoInfo}. Please retry command. If the error persists, please file a bug on github` ) 
 }

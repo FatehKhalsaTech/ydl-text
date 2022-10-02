@@ -5,12 +5,19 @@ import { siteDefaults } from '../utils/defaults.js'
 import { readFile, validatePath, getFileName } from '../utils/files.js'
 import { youtubeDLPromise } from '../utils/cli-wrappers.js'
 import { executeSequentially, retry } from '../utils/async.js'	
+import { getYoutubeVideoID } from '../utils/youtube-urls.js'
+
+import * as ytInfo from 'youtube-info-streams'
 
 const sites = Object.entries( siteDefaults ).map( ( [ key, value ] ) => {
 	return [ key, value.alias ]
 } )
 const generateDowload = async ( options, outputPath,link, multiProgressBar ) => {
 	const { audio: audioOnly, attachThumbnail, onlyImage: thumbnailOnly, formatList: formatsOnly, format } = options
+
+	const ytVideoID = getYoutubeVideoID( link )
+	const videoInfo = ytInfo( ytVideoID ) 
+	const { videoDetails: { title: videoTitle } } = videoInfo
 
 	const outputTitle = `${outputPath}/%(title)s.%(ext)s` 
 	let opts
@@ -73,7 +80,7 @@ const generateDowload = async ( options, outputPath,link, multiProgressBar ) => 
 		multiProgressBar.remove( linkProgress )
 	}
 
-	await retry( youtubeDLPromise, 3, link, opts, progressCallback, eventCallback, endCallback )
+	await retry( youtubeDLPromise, 3, videoTitle, link, opts, progressCallback, eventCallback, endCallback )
 }
 
 
