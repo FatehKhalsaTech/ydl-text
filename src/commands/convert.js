@@ -8,8 +8,9 @@ import { ydlError } from '../utils/error.js'
 import { ffmpegPromise } from '../utils/cli-wrappers.js'
 import cliProgress from 'cli-progress'
 
-const formatOpts = {
-	ogg: [ '-acodec libvorbis' ]
+const formatCodec = {
+	ogg: [ 'libvorbis' ],
+	mp3: [ 'libmp3lame' ]
 }
 const program = new Command()
 program
@@ -34,18 +35,19 @@ program
 			const progressBar = new cliProgress.SingleBar( { hideCursor: true }, cliProgress.Presets.shades_classic )
 
 
-			let command = ffmpeg( path ).outputOption( '-acodec libvorbis' ) .on( 'progress', function( progress ) {
+			let command = ffmpeg( path ).on( 'progress', function( progress ) {
 				console.log( 'Processing: ' + progress.percent + '% done' )
 			} )
 			
-			// if( formatOpts?.[ outputFormat ] ){
-			// 	formatOpts?.[ outputFormat ].forEach( opt => {
-			// 		command = command.outputOption( opt )
-			// 	} )
-			// }
-			// // ffmpeg treats attached images as video, so we copy the image one to one with no change
-			// 	.outputOption( '-c:v copy' )
-			// 	.outputOption( '-map_metadata 0' )
+			if( formatCodec?.[ outputFormat ] ){
+				formatCodec?.[ outputFormat ].forEach( opt => {
+					command = command.outputOption( `-acodec ${opt}` )
+				} )
+			}
+			// ffmpeg treats attached images as video, so we copy the image one to one with no change
+			command = command
+				.outputOption( '-c:v copy' )
+				.outputOption( '-map_metadata 0' )
 
 			ffmpegPromise( command, `${outputPath}/${fileName}.${outputFormat}`, ( data ) =>{ progressBar.update( round( data.percent, 0 ) ) }, () => {} ).then( async () => await trash( path ) )
 
