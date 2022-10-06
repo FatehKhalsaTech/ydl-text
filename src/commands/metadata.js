@@ -18,12 +18,8 @@ optsM4A.forEach( ( [ flags, description ] ) => {
 	program.option( flags, description )
 } )
 
-// metadataOpts.forEach( ( [ flags, description ] ) => {
-// 	program.option( flags, description )
-// } )
 program.action( ( filePath, opts ) => {
 	validatePath( filePath )
-	console.log( opts )
 
 	const truncateFileExtPrefix = ( string ) => {
 		const removeExt = string.slice( 3 )
@@ -40,11 +36,15 @@ program.action( ( filePath, opts ) => {
 		const { artist, album, title, track, label, date, attachment } = mp3Options
 
 		const data = assignDefined( {}, { artist, album, title, track, label, date } )
-		const options = assignDefined( {},  { attachments: [ attachment ] } )
+		const options = attachment ? assignDefined( {},  { attachments: [ attachment ] } ) : undefined
 
-		console.log( data, options )
 
-		ffmetadata.write( filePath, data, options, ( err ) => {
+		if ( !attachment ) 
+			ffmetadata.write( filePath, data, ( err ) => {
+				if ( err ) console.error( err )
+				else console.log( 'Finished Metadata' )
+			} )
+		else ffmetadata.write( filePath, data, options, ( err ) => {
 			if ( err ) console.error( err )
 			else console.log( 'Finished Metadata' )
 		} )

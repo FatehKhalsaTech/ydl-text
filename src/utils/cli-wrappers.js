@@ -2,6 +2,7 @@ import execa from 'execa'
 import dargs from 'dargs'
 import YoutubeDL from 'youtube-dl-wrap'
 import { ydlError } from './error.js'
+import { convertEmptyStrToObj, strObjectToEmptyStr } from './strings.js'
 
 // From https://stackoverflow.com/a/64537501
 export const ffmpegPromise = ( command, saveToName, progressCallback, endCallback ) =>
@@ -26,10 +27,9 @@ export const youtubeDLPromise = ( link, flags, progressCallback, eventCallback, 
 			.on( 'progress', progressCallback )
 			.on( 'youtubeDlEvent', eventCallback )
 			.on( 'error', ( err ) => {
-				return reject( ydlError ( err ) )
+				return reject( err )
 			} )
 			.on( 'close', () => {
-				console.log( 'Download Complete' )
 				endCallback()
 				resolve()
 			} )
@@ -38,8 +38,6 @@ export const youtubeDLPromise = ( link, flags, progressCallback, eventCallback, 
 
 // based on https://github.com/microlinkhq/youtube-dl-exec/
 const generateArguments = ( path, flags ) => {
-	return [ path ].concat( dargs( flags, { useEquals: false, allowCamelCase: true } ) ).filter( Boolean )
+	return [ path ].concat( strObjectToEmptyStr( dargs( convertEmptyStrToObj( flags ), { useEquals: false, allowCamelCase: true } ) ) )
 }
-export const atomicParsleyPromise =  ( path, options, execaOptions ) => {
-	console.log( generateArguments( path, options ) )
-	return 	execa( 'AtomicParsley', generateArguments( path, options ),  execaOptions ).stdout.pipe( process.stdout ) }
+export const atomicParsleyPromise =  ( path, options, execaOptions ) => execa( 'AtomicParsley', generateArguments( path, options ),  execaOptions ).stdout.pipe( process.stdout ) 
