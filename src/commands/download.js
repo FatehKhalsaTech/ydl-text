@@ -2,12 +2,13 @@ import { Command } from 'commander'
 import cliProgress from 'cli-progress'
 
 import { siteDefaults } from '../utils/defaults.js'
-import { readFile, validatePath, getFileName } from '../utils/files.js'
+import { readFile, validatePath } from '../utils/files.js'
 import { youtubeDLPromise } from '../utils/cli-wrappers.js'
 import { executeSequentially, retry } from '../utils/async.js'	
-import { getYoutubeVideoID } from '../utils/youtube-urls.js'
+import { getYoutubeVideoID } from '../utils/urls.js'
 
 import * as ytInfo from 'youtube-info-streams'
+import * as Soundcloud from 'soundcloud-scraper'
 
 const sites = Object.entries( siteDefaults ).map( ( [ key, value ] ) => {
 	return [ key, value.alias ]
@@ -15,9 +16,14 @@ const sites = Object.entries( siteDefaults ).map( ( [ key, value ] ) => {
 const generateDowload = async ( options, outputPath,link, multiProgressBar ) => {
 	const { audio: audioOnly, attachThumbnail, onlyImage: thumbnailOnly, formatList: formatsOnly, format } = options
 
-	const ytVideoID = getYoutubeVideoID( link )
-	const videoInfo = ytInfo( ytVideoID ) 
-	const { videoDetails: { title: videoTitle } } = videoInfo
+	let ytVideoID, videoInfo , videoTitle
+
+	ytVideoID = getYoutubeVideoID( link )
+	if( ytVideoID ) {
+		videoInfo = await ytInfo.info( ytVideoID ) 
+		videoTitle = videoInfo.videoDetails.title
+		console.log( `Starting Download on ${videoTitle}...\n` )
+	}
 
 	const outputTitle = `${outputPath}/%(title)s.%(ext)s` 
 	let opts
