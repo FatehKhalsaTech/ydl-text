@@ -100,7 +100,7 @@ program
 				if ( endSeconds ) {
 					const length = endSeconds - startSeconds
 					if ( length < 0 ) {
-						endWithError(
+						ydlError(
 							'Please make sure the start time is before the end time',
 						)
 					}
@@ -113,7 +113,7 @@ program
 
 				ffmpegPromise( ffmpegCommand, tempFileName, () => {}, () => {} ).then( () => {
 					if ( !keepInput ) {
-						fs.renameSync( tempFileName, path, () => {
+						fs.renameSync( tempFileName, outputPath, () => {
 							console.log( 'Overwritten file' )
 						} )
 					}
